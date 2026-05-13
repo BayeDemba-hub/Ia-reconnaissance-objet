@@ -1,31 +1,39 @@
 from ultralytics import YOLO
-import cv2
+import streamlit as st
+from PIL import Image
+import numpy as np
 
-# Charger le modèle
+# Charger le modèle YOLOv8
 model = YOLO("yolov8n.pt")
 
-# Ouvrir la webcam
-cap = cv2.VideoCapture(0)
+# Titre
+st.title("Détection d’objets avec YOLOv8")
 
-while True:
-    # Lire une frame
-    ret, frame = cap.read()
+st.write("Importer une image pour détecter les objets")
 
-    if not ret:
-        break
+# Upload image
+uploaded_file = st.file_uploader(
+    "Choisir une image",
+    type=["jpg", "jpeg", "png"]
+)
+
+if uploaded_file is not None:
+
+    # Ouvrir l’image
+    image = Image.open(uploaded_file)
+
+    # Convertir en tableau numpy
+    img_array = np.array(image)
 
     # Faire la détection
-    results = model(frame)
+    results = model(img_array)
 
-    # Afficher les résultats annotés
+    # Dessiner les résultats
     annotated_frame = results[0].plot()
 
-    cv2.imshow("YOLOv8 Webcam", annotated_frame)
-
-    # Quitter avec la touche q
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
-# Libérer les ressources
-cap.release()
-cv2.destroyAllWindows()
+    # Afficher l’image détectée
+    st.image(
+        annotated_frame,
+        caption="Résultat de la détection",
+        use_container_width=True
+    )
